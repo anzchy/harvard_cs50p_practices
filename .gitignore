@@ -1,3 +1,9 @@
 .jupyter
 .ipynb_checkpoints
 .DS_Store
+code_practice/agree
+code_practice/calculator
+code_practice/compare
+code_practice/hello_jack
+code_practice/meow
+code_practice/meow_func
