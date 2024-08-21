@@ -91,19 +91,115 @@
 | string comparison        | if(strcmp(s, "+") == 0){ }<br />C 语言中不能直接进行字符串判断，两个相同字符串也无法直接用 == 比较。 | if (s = "+"):                                                |
 |                          |                                                              |                                                              |
 
-# 二、做些项目，干中学
+## 二、做些项目，干中学
 
-1、批量查询单词的美式发音
+### 1、批量查询单词的美式发音
 
+（1）第一阶段实现：word，查询单词，并批量写回 csv
 
-
-2、批量 tts，利用 openai
-
-
+目前结合 POE 的 prompt 完成了。
 
 
 
-## 二、框架
+（2）任务：即同时提取出word、prounciation和对应的例句（如果有的话）
+
+举一反三：同样的程序我可以做变通，譬如把对应的例句也提取出来，这样可以提升自己对 POE 得来的程序的理解，只有举一反三，这项目中锻炼出来的能力才是自己的。
+
+
+
+
+
+### 2、批量 tts，利用 openai
+
+这里有个值得注意的点，一定要阅读官方文档API Reference [Audio- Create speech ](https://platform.openai.com/docs/api-reference/audio/createSpeech)，其实文本转语音tts是可以控制语音速度(speed)的。如果只看[tts doc]https://platform.openai.com/docs/guides/text-to-speech中的例句，是没有的。这就是阅读所有相关文档的好处。
+
+注意：右边的 example request，可以选择 curl 还是 Python 语言
+
+![image-20240821080239638](../../../../Library/Application Support/typora-user-images/image-20240821080239638.png)
+
+
+
+
+
+### 3、利用批量查询的单词，结合Openai prompt，生成2个例句，然后用 tts 文本转语音。
+
+注意阅读 [Assisstant API](https://platform.openai.com/docs/api-reference/assistants)
+
+
+
+### 4、将 conversation 中的 Alloy 和 Nova，分别用不同语音生成，最后合并在一起。
+
+结合 Prompt 生成的，这个还要再学习学习
+
+必备知识：把 python pydub 库好好看看，有哪些 method
+
+```
+我这里有段对话，是男孩和女孩的一段对话文本，我想实现如下功能：1、男孩的文本用 openai tts 模型的nova voice 转写成音频，女孩的对话文本用 openai tts 模型的alloy voice 转写成音频。如此往复，2、将各段音频按照对话顺序合并为一个文件，请给出 python 代码。 假设对话是这样的：Nova：You know, I believe life-long learning is essential in today's fast-paced world. Alloy：Absolutely! It's amazing how much knowledge we can gain if we keep our minds open.Right? Nova： Like, every day brings a new opportunity to learn something new. Alloy：For sure! But don’t you think some people struggle to find the time for it?
+```
+
+```
+# Prompt生成的代码
+import yaml
+import openai
+from pydub import AudioSegment
+
+# Load the API key from the YAML file
+with open('config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
+# Set the API key
+openai.api_key = config['openai']['api_key']
+
+# Define the conversation
+conversation = [
+    {"speaker": "Nova", "text": "You know, I believe life-long learning is essential in today's fast-paced world."},
+    {"speaker": "Alloy", "text": "Absolutely! It's amazing how much knowledge we can gain if we keep our minds open. Right?"},
+    {"speaker": "Nova", "text": "Like, every day brings a new opportunity to learn something new."},
+    {"speaker": "Alloy", "text": "For sure! But don’t you think some people struggle to find the time for it?"}
+]
+
+# Function to generate TTS audio using OpenAI API
+def generate_tts(text, voice):
+    response = openai.Audio.create(
+        engine="text-to-speech",
+        voice=voice,
+        text=text
+    )
+    return response['audio_data']
+
+# Function to save audio to a file
+def save_audio(filename, audio_data):
+    with open(filename, 'wb') as f:
+        f.write(audio_data)
+
+# Generate and save audio files
+audio_files = []
+for i, line in enumerate(conversation):
+    voice = 'nova' if line['speaker'] == 'Nova' else 'alloy'
+    audio_data = generate_tts(line['text'], voice)
+    filename = f"line_{i}.mp3"
+    save_audio(filename, audio_data)
+    audio_files.append(filename)
+
+# Merge audio files
+combined_audio = AudioSegment.empty()
+for file in audio_files:
+    audio = AudioSegment.from_file(file)
+    combined_audio += audio
+
+# Export combined audio to a file
+combined_audio.export("conversation.mp3", format="mp3")
+```
+
+
+
+5、读取 json
+
+必备知识：把 python json 文档好好看看
+
+
+
+## 三、框架
 
 1、根除来自大脑里根深蒂固的观念：以为只有理科生、工科生才能编程，文科生就是天生不能编程。
 
@@ -296,7 +392,7 @@ Python中单行用 #
 
 
 
-## 三、Python类型及其运算
+## 四、Python类型及其运算
 
 https://docs.python.org/3/library/stdtypes.html
 
@@ -1504,7 +1600,7 @@ f.close()
 
 
 
-## 四、if 语句与for循环、While循环
+## 五、if 语句与for循环、While循环
 
 两种语句：分支和循环，循环又包括for 循环和while循环
 
@@ -1741,7 +1837,7 @@ while更灵活，因为它后面只需要接上一个逻辑表达式即可。
 
 
 
-## 五、函数
+## 六、函数
 
 关于最简单函数该怎么写，注意冒号不要忘了，注意缩进。
 
@@ -1880,7 +1976,7 @@ phonebook1 = {'ann':6575, 'bob':8982, 'joe':2598, 'zoe':1225, 'ann':6585} # dict
 
 
 
-## 六、类
+## 七、类
 
 列表 是数据层面的封装；
 
@@ -1930,11 +2026,11 @@ print("my dog is "+ str(my_dog.age)+" years old.")
 
 
 
-##  七、文件和异常
+##  八、文件和异常
 
 ### **1、读取文件**
 
-**（1）各种打印文本内容的方法**
+### **（1）各种打印文本内容的方法**
 
 ①第一种方法：read()
 
@@ -1949,10 +2045,11 @@ readline()一次读取一行，从文件指针的位置向后读取，直到遇�
 ```python
 >>>filename = 'Chapter_12_File_and_error/learning_python.txt'
 >>>f = open(filename)
->>>f.read(5)
-'In Py'
+
 >>>f.read()
 'In Python you can scrape websites\nIn Python you can analyze millions of digits efficiently \nIn Python you can do machine learning, data visualization, and analysis\n'
+>>>f.read(5)
+'In Py'
 >>>f.readline()
 'In Python you can scrape websites\n'
 ```
@@ -1967,7 +2064,7 @@ readline()一次读取一行，从文件指针的位置向后读取，直到遇�
 
 第二种方法，何时关闭文件将有Python自己判断，程序运行更健壮。
 
-③文件本身支持迭代，逐行遍历整个文件
+**③文件本身支持迭代，逐行遍历整个文件**
 
 用for 循环，因为file_object就是一个巨大的字符串
 
@@ -1997,7 +2094,7 @@ for line in lines:
 
 
 
-**（2）超大文本处理**
+### **（2）超大文本处理**
 
 处理文本量超大的文本文件，Python照样能轻松应对，这时候打印的时候要指定打印长度。
 
@@ -2009,6 +2106,7 @@ filename = 'Chapter_12_File_and_error/pi_million_digits.txt'
 with open(filename) as file_object:
     lines = file_object.readlines()
 
+# 这里是在with open 之外把整个文件逐行读取，存储在 pi_string 这个 string 变量上。   
 pi_string = ''
 for line in lines:
     pi_string += line.rstrip()
@@ -2022,6 +2120,7 @@ print(len(pi_string))
 **（3）查找文本中的关键字（用到逻辑运算符in）**
 
 ```python
+# 这里的功能和上文相同
 filename = 'Chapter_12_File_and_error/pi_million_digits.txt'
 with open(filename) as file_object:
     lines = file_object.readlines()
@@ -2030,6 +2129,7 @@ pi_string = ''
 for line in lines:
     pi_string += line.rstrip()
 
+# 查看你的生日是否在圆周率中，注意这里是连续的6个数字
 birthday = input("Enter your birthday, in the form mmddyy: ")
 if birthday in pi_string:
     print("your birthday appears in the first million digits of pi!")
@@ -2083,6 +2183,32 @@ I love creating apps that can run in a browser.
 
 而当将'w'变为'a'模式之后，原有内容发现不会被清空
 
+> 20240820 添加：
+> 这里的一个案例值得参考，即可以用 for循环，写入文件，而且写入的时候，一次写入一行，写入的参数是 list, 可以用变量[name , prounciation] 构建 list。
+
+
+
+```python
+# 读取 CSV 文件的单词
+words = []
+with open("words.csv", 'r', newline='') as file:
+    reader = csv.reader(file)
+    for row in reader:
+        words.append(row[0])
+
+# 写入 word_proun.csv 文件
+with open('word_proun.csv', 'w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(["word", "pronunciation"])  # 写入头部
+
+    for word in words:
+        pronunciation = proun_search(word)
+        if pronunciation:
+            writer.writerow([word, pronunciation])
+        else:
+            writer.writerow([word, "none"])
+```
+
 
 
 ### **3、异常**
@@ -2114,6 +2240,8 @@ AttributeError: 'list' object has no attribute 'fishc'
 
 
 （3）IndexError：索引超出序列的范围
+
+一个值得注意的点是，如果在for循环中出现了 index of range，最好在return 之前，先判断有没有这个值。
 
 ```python
 >>> my_list = [1, 2, 3]
@@ -2231,6 +2359,257 @@ except ValueError as reason:
 else:
     print('没有任何异常！')
 ```
+
+
+
+## 九、Regular Expressions 正则表达式
+
+### 一、RE 的用途
+
+1、网页开发
+用户名、密码的规范
+
+A simple example is Password and Email-ID validation of any login page of any Banking Website.
+
+RegEx is also used in web scraping, data wrangling, used for text matching
+
+2、文本翻译时格式清晰
+在 kindle 英文书翻译为中文后，有些 html tag 多余，有的是翻译后的中文中夹杂着英文符号。如果一个一个，工作量太大。
+
+3、从大量文字、文档中筛选出文本
+
+譬如提取目录，提取指定格式的邮件（如提取出所有 gmail 邮箱）
+
+
+
+### 二、RE 相关语法
+
+#### （一）元字符 metacharacters
+
+> . ^ $ * + ? { } [ ] \ | ( )
+
+1、$
+
+Matches at the end of a line,which is defined as either the end of the string,or any location followed by a newline character.
+
+譬如 '}$'会寻找以}结尾的特征，而如下两个字符串都可以：'{block}' 、'{block}\n'
+
+2、｜ 
+
+the '| ' operator is never greedy.
+
+
+
+#### （二）modules/methods
+
+- 第一个函数：re.`findall()`，查找并返回所有匹配的字符
+
+```python
+import re
+pattern = re.compile(r"")# 虽然可以省去这一步，不过如果之后需要编译多次，这个还是有用的
+my_string = input("Enter a string:")
+pattern = re.compile(r"[0-9]+")
+re.findall(pattern, my_string) # 通常先输入要处理的 string，再定义 pattern，后面跟上 findall 的 method
+```
+
+第二种用法：pattern.findall()
+
+```
+p = re.compile(r'\d+')
+p.findall('12 drummers drumming, 11 pipers piping, 10 lords a-leaping')
+```
+
+
+
+- 第二个：finditer()
+
+Find all substrings where the RE matches, and returns them as an [iterator](https://docs.python.org/3.13/glossary.html#term-iterator).
+
+
+
+
+
+- 第三个：pattern.`substitute()`
+
+```
+import re
+pattern = re.compile(r"")# 虽然可以省去这一步，不过如果之后需要编译多次，这个还是有用的
+my_string = input("Enter a string:")
+pattern = re.compile(r"[0-9]+")
+result = pattern.sub("_", my_string) #这个跟上的是替换 method，原理是把上面findall 返回的字符串都替换为“_“，上面返回了多少个字符串，相应的就有多少个下划线_
+print(result)
+```
+
+- 第四个：pattern.search()，在 string 中寻找指定的词语，并返回位置
+
+```python
+import re
+my_str
+```
+
+- 第五个：pattern.match()，
+
+
+
+match() 与 search()的不同：
+
+> Since the match() method **only checks if the RE matches at the start of a string**, start ()will always be zero.However,**the search()method of patterns scans through the string, so the match may not start at zero in that case**.
+
+Match()之后会有子 method
+
+> group(), Return the string matched by the RE
+>
+> start() , Return the starting position of the match
+>
+> end(), Return the ending position of the match
+>
+> span(),Return a tuple containing the (start, end) positions of the match
+
+```
+import re
+p = re.compile('[a-z]+')
+m = p.match('tempo')
+m.group() #注意是 m.group，不是 p.group
+m.start(),m.end()
+m.span()
+```
+
+
+
+
+
+#### (三）Special Sequences
+
+| Element | Description                                                  |
+| ------- | ------------------------------------------------------------ |
+| .       | Matches any single character except newline character.       |
+| \d      | this matches any digit[0-9]                                  |
+| \D      | This matches non-digit character\[^0-9]                      |
+| \s      | This matches whitespace character \[\t\n\r\f\v]              |
+| \S      | This matches non-white-space character \[^ \t\n\r\f\v]       |
+| \w      | This matches alphanumeric character\[a-zA-Z0-9_]             |
+| \W      | This matches any non-alphanumeric character\[^a-zA-Z0-9]     |
+| \A      | Returns a match if the specified characters are at the beginning of  the string |
+| \b      | Returns a match where the specified characters are **at the beginning or the end of a word**，在word 的开头或者末尾情况下，都是真 |
+| \B      | Returns a match where the specified characters are present, but NOT at **the beginning (or the end) of a word** |
+| \Z      | Returns a match if the specified characters are at the end of the string |
+
+注：
+
+d是 digit 的缩写
+
+s 是 space的缩写
+
+w 是 word 的缩写
+
+b 是 boundary 的缩写
+
+a 意味着在string 的开头，z 意味着在 string 的末尾
+
+
+
+1、\w
+
+
+
+2、\W
+
+```
+import re
+pattern = re.compile(r'\W') # 这个情况下，最好所有的 pwd 都是非 a-zA-Z0-9 才符合条件，一旦第一个特殊符号前有一个字符不是特殊字符，就不match
+result1 = pattern.match("j!ack") # result1 返回 none
+result2 = pattern.match("!@#")# result2 返回结果
+print(result1)
+print(result2)
+```
+
+3、\A
+
+\A 与 ^ 的区别：
+
+> When not in MULTILINE mode（多行）,\A and are effectively the same.In MULTILINE mode,they're different:\A still matches only at the beginning of the string, but ^ may match at any location inside the string that follows a newline character.
+
+
+
+3、\b
+
+Word boundary
+
+A word is defined as a sequence of alphanumeric characters, so the end of a word is indicated by whitespace or a non-alphanumeric character.
+
+'\bclass\b' 用于如下字符串'no class at all'，能够match，但是用于如下字符串'the declassified'，会返回 None.
+
+
+
+
+
+#### （四）repeated numbers/Quantifiers
+
+| Quantifier | Description       | pattern Example                                 | Sample match                                                 |
+| ---------- | ----------------- | ----------------------------------------------- | ------------------------------------------------------------ |
+| +          | One or more       | \w+                                             | ABCDEF097，这个为例，会返回整个组合                          |
+| {2}        | Exactly 2 times   | \d{2}                                           | 01                                                           |
+| {1,}       | one or more times | \w{1,}                                          | 和+功能一样，只显示出”124”字符串                             |
+| {2,4}      | 2,3 or 4 times    | \w{2,4}                                         | 1234，指的是出现了 2-4 次，返回的是一个 string；<br />例子1：“jack124chy12an12345"，返回的是 `124`、`12`、`1234`三个字符<br />例子 2:”12345678“，会按照最大的也就是 每 4 个做分类，即返回`1234`、`5678` |
+| *          | 0 or more times   | A*B，表示0 个 A 或者 1 个以上的 A，然后接 1 个B | AAAAB，AB，B                                                 |
+| ?          | once or none      | \d+?，起到的作用相当于{1}                       |                                                              |
+
+
+
+
+
+
+
+#### (五）Sets
+
+| Sets        | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| [arn]       | Returns a match where one of the specified characters(a, r or n) are present |
+| [a-n]       | Returns a match for any lower case character, alphabetically between a and n |
+| [^arn]      | Returns a match for any character EXCEPT a, r, and n         |
+| [0123]      | Returns a match where any of the specified digits(0,1,2 or 3)are present |
+| [0-9]       | Returns a match for any digit between 0 and 9                |
+| \[0-5][0-9] | Returns a match for any two-digit numbers from 00 and 59     |
+| [a-zA-Z]    | Returns a match for any character alphabetically between a and z, lower case OR upper case |
+| [+]         | In sets, +, *, ., \|,(), $, {} has no special meaning, so [+] means: return a match for any + character in the string<br /> |
+
+譬如国内的电话号码格式应该是`1[0-9]{10}`
+
+1、[ ]也就是说在[ ] *、+、？等元字符全部失效，只是用于匹配其本身（metacharacters 的魔法失效了）。
+
+> eg. [akm$] will match any characters 'a', 'k', 'm', '$'
+
+2、^ 在[ ]中应用于前面才有作用，譬如\[^5] 将匹配任何非 5 的字符，但是\[5^]却起不到任何作用，此时只是匹配'5' 或者'^'自身。
+
+
+
+（六）Boundaries
+
+`^` marks the start ,i.e. Hat，但是如果在\[^……]，意思是 not 
+
+`$` marks the end of a regular expression
+
+
+
+
+
+### 三、RE 的资源
+
+1、RegEx101
+
+https://regex101.com/r/22QfRq/2
+
+2、RegExr
+
+ https://regexr.com/
+
+3、Regex Documentation
+
+w3Schools (Python) — https://www.w3schools.com/python/python_regex.asp
+
+Python Regex Cheatsheet — https://www.debuggex.com/cheatsheet/regex/python
+
+
 
 
 
