@@ -199,6 +199,60 @@ combined_audio.export("conversation.mp3", format="mp3")
 
 
 
+## 三、总结：一些常用的小片段
+
+### 1、输入密码等时候，需要设定一定的规范。
+
+```
+while True:
+    n = int(input("How many times do you want to meow? "))
+    if n > 0:
+        break
+
+for i in range(n):
+    print("meow")
+```
+
+之后学了正则表达式，就可以像现在很多网站注册时对密码的要求一样，可以要求密码长度不低于 6，必须至少有 1 个数字，1 个字母和 1 个特殊符号（?!@）。
+
+### 2、For 循环可以和列表结合
+
+之前要打印列表list 的各个元素：
+
+```
+for i in range(len(list_instance)):
+		print(list_instance[i])
+```
+
+现在还有更简单的：
+
+```
+for i in list_instance:
+		print(list_instance[i])
+```
+
+
+
+### 3、对大型 JSON 文件、TXT 文件读取的心得
+
+首先是搞清楚其中的数据结构，通常长这样。
+
+![image-20240823003113960](../../../../Library/Application Support/typora-user-images/image-20240823003113960.png)
+
+方法就是通过各种打印，一级一级的输出 dict.keys()。
+
+![image-20240823003319775](../../../../Library/Application Support/typora-user-images/image-20240823003319775.png)
+
+以下是编程序时候注意事项：
+
+读取的时候，记得一行一行读取，用 for line in file:
+
+其次记得，容易出现 index out of range，这里可能是因为在上面几个级别结构中，可能有的 key 没有 value，所以要嵌套好几层，在赋值之前，检查是否存在 value，如果是 dict 对象，可以用 dict.get('key1',[])来获取对应的 value1，然后再用 if 语句判断是否存在，存在再赋值。
+
+![image-20240823004002085](../../../../Library/Application Support/typora-user-images/image-20240823004002085.png)
+
+
+
 ## 三、框架
 
 1、根除来自大脑里根深蒂固的观念：以为只有理科生、工科生才能编程，文科生就是天生不能编程。
@@ -1487,6 +1541,12 @@ sorted(phonebook, reverse = True)
 for name, bike in transportation:
     print(name.title()+": "+bike.title())
 ```
+
+
+
+> dict 有 get()方法，list 列表没有。
+>
+> 参考：https://stackoverflow.com/questions/5125619/why-doesnt-list-have-safe-get-method-like-dictionary
 
 
 
